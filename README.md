@@ -46,6 +46,7 @@ To register use the following json pattern
 ```
 
 In order to add an ad you should be authorized, and if so, use the following json pattern
+Max image size 1MB
 
 ```json
 {
