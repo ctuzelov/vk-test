@@ -1,8 +1,9 @@
 package utils
 
 import (
+	"fmt"
+	"net/http"
 	"net/mail"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -12,6 +13,8 @@ var (
 	MsgInvalidName  = "Write correct name. Username should start with an alphabet [A-Za-z] and all other characters can be alphabets, numbers or an underscore so, [A-Za-z0-9_]. The username consists of 5 to 15 characters inclusive."
 	MsgInvalidPass  = "Password must contain letters, numbers and must be at least 6 characters."
 )
+
+const maxImageSizeBytes = 1048576 // 1MB
 
 func IsValidEmail(email string) bool {
 	rxEmail := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
@@ -27,14 +30,30 @@ func IsValidPassword(pass string) bool {
 }
 
 func IsValidImageURL(imageURL string) bool {
-	extension := filepath.Ext(imageURL)
-	validExtensions := []string{".jpg", ".jpeg", ".png", ".gif", ".bmp"}
-	for _, ext := range validExtensions {
-		if strings.EqualFold(ext, extension) {
-			return true
+	response, err := http.Get(imageURL)
+	if err != nil {
+		return false
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		fmt.Println(response.StatusCode)
+		return false
+	}
+
+	contentType := response.Header.Get("Content-Type")
+	validTypes := []string{"image/jpeg", "image/png", "image/gif", "image/bmp"}
+	for i, validType := range validTypes {
+		if contentType == validType {
+			break
+		}
+		if i == len(validTypes)-1 {
+			return false
 		}
 	}
-	return false
+
+	return response.ContentLength <= maxImageSizeBytes
+
 }
 
 func IsValidPrice(price float64) bool {
