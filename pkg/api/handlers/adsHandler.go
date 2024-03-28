@@ -15,7 +15,7 @@ func CreateAd() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"message": "Project created successfully"})
+		c.JSON(http.StatusOK, gin.H{"message": "Ad created successfully"})
 	}
 }
 

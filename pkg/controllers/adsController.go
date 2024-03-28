@@ -38,8 +38,6 @@ func CreateAd(c *gin.Context) (err error) {
 		return fmt.Errorf("invalid image link")
 	}
 
-	// TODO: validation for the form
-
 	// Create the Ad in the database
 	err = repository.CreateAd(Ad)
 	if err != nil {
