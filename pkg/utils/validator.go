@@ -23,14 +23,7 @@ func IsValidEmail(email string) bool {
 }
 
 func IsValidPassword(pass string) bool {
-	tests := []string{".{6,}", "[a-z]", "[0-9]"}
-	for _, test := range tests {
-		valid, _ := regexp.MatchString(test, pass)
-		if !valid {
-			return false
-		}
-	}
-	return true
+	return len(pass) >= 6
 }
 
 func IsValidImageURL(imageURL string) bool {

@@ -10,6 +10,5 @@ import (
 func UserRoutes(incomingRoutes *gin.Engine) {
 	incomingRoutes.POST("/signup", handlers.Signup())
 	incomingRoutes.POST("/signin", handlers.Login())
-	incomingRoutes.GET("/get-users", handlers.GetAllUsers())
 	incomingRoutes.POST("/refresh-token", middleware.IsAuthenticated(), handlers.RefreshToken())
 }
