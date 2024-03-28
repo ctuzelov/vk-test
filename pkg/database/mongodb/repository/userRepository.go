@@ -63,25 +63,6 @@ func GetUserByEmail(email string) (foundUser models.User, err error) {
 	return
 }
 
-func UpdateUser(user models.User) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	defer cancel()
-
-	filter := bson.M{"email": user.Email} // Use the user's unique ID as the filter
-
-	update := bson.M{
-		"$set": bson.M{
-			"name":          user.Name,
-			"number":        user.Number,
-			"date_of_birth": user.DateOfBirth,
-		},
-	}
-
-	_, err := userCollection.UpdateOne(ctx, filter, update)
-
-	return err
-}
-
 // Function that returns all users from the database
 func GetAllUsers() (users []models.User, err error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)

@@ -12,7 +12,7 @@ import (
 const adminEmail string = "chingizkhan@gmail.com"
 
 // Function that handles Token generation using a secret key
-func GenerateAllTokens(email string, name string, uid string) (signedToken string, signedRefreshToken string, err error) {
+func GenerateAllTokens(email string, uid string) (signedToken string, signedRefreshToken string, err error) {
 
 	/*err = godotenv.Load(".env")
 	if err != nil {
@@ -27,7 +27,6 @@ func GenerateAllTokens(email string, name string, uid string) (signedToken strin
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"Email":   email,
-		"Name":    name,
 		"isAdmin": Admin,
 		"Uid":     uid,
 		"exp":     time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
@@ -35,7 +34,6 @@ func GenerateAllTokens(email string, name string, uid string) (signedToken strin
 
 	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"Email":   email,
-		"Name":    name,
 		"isAdmin": Admin,
 		"Uid":     uid,
 		"exp":     time.Now().Local().Add(time.Hour * time.Duration(169)).Unix(),

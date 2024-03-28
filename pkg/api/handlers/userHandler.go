@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"vk-test/pkg/controllers"
 	"net/http"
+	"vk-test/pkg/controllers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func Signup() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "You have successfully signed up."})
+		c.JSON(http.StatusOK, gin.H{"message": "You have successfully signed up. Go to /signin route"})
 
 	}
 }
@@ -55,17 +55,6 @@ func RefreshToken() gin.HandlerFunc {
 			"Refresh Token": refreshToken,
 			"Message":       "Token refreshed successfully",
 		})
-	}
-}
-
-func UpdateUser() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		err := controllers.EditPersonalData(c)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"message": "Personal data updated successfully"})
 	}
 }
 

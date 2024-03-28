@@ -1,16 +1,16 @@
 package handlers
 
 import (
-	"vk-test/pkg/controllers"
 	"net/http"
+	"vk-test/pkg/controllers"
 
 	"github.com/gin-gonic/gin"
 )
 
 // Function that handles creating a project
-func CreateProject() gin.HandlerFunc {
+func CreateAd() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		err := controllers.CreateProject(c)
+		err := controllers.CreateAd(c)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -19,26 +19,26 @@ func CreateProject() gin.HandlerFunc {
 	}
 }
 
-// Function that handles updating a project
-func UpdateProject() gin.HandlerFunc {
+// Function that handles getting all ads
+func GetAllAds() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		err := controllers.UpdateProject(c)
+		ads, err := controllers.GetAllAds(c)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"message": "Project updated successfully"})
+		c.JSON(http.StatusOK, ads)
 	}
 }
 
-// Function that handles getting all projects
-func GetAllProjects() gin.HandlerFunc {
+// Function that handles getting ads by page
+func GetAds() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		projects, err := controllers.GetAllProjects(c)
+		ads, err := controllers.GetAdsByPage(c)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
-		c.JSON(http.StatusOK, projects)
+		c.JSON(http.StatusOK, ads)
 	}
-
 }

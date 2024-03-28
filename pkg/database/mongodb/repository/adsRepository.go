@@ -6,35 +6,21 @@ import (
 	"vk-test/pkg/database/mongodb/models"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var adsCollection *mongo.Collection = OpenCollection(Client, "ads")
 
-// Function that creates a project in the database and updates the project count
-func CreateProject(project models.Ad) (err error) {
+// Function that creates an ad in the database and updates the ad count
+func CreateAd(ad models.Ad) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
-	return nil
-}
+	ad.ID = primitive.NewObjectID()
 
-// Function that updates a project in the database
-func UpdateProject(projectId int, updatedProject models.Ad) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	defer cancel()
-
-	filter := bson.M{"id": projectId}
-	oldOne, err := GetProjectByID(projectId)
-	if err != nil {
-		return err
-	}
-	updatedProject.Id = oldOne.Id
-	updatedProject.ID = oldOne.ID
-	update := bson.M{"$set": updatedProject}
-
-	_, err = adsCollection.UpdateOne(ctx, filter, update)
+	_, err = adsCollection.InsertOne(ctx, ad)
 	if err != nil {
 		return err
 	}
@@ -42,13 +28,13 @@ func UpdateProject(projectId int, updatedProject models.Ad) error {
 	return nil
 }
 
-// Function that retrieves a project from the database by its custom ID
-func GetProjectByID(projectId int) (foundProject models.Ad, err error) {
+// Function that retrieves a ad from the database by its custom ID
+func GetAdByID(adId int) (foundad models.Ad, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
-	filter := bson.M{"id": projectId}
-	err = adsCollection.FindOne(ctx, filter).Decode(&foundProject)
+	filter := bson.M{"id": adId}
+	err = adsCollection.FindOne(ctx, filter).Decode(&foundad)
 	if err != nil {
 		return
 	}
@@ -56,8 +42,8 @@ func GetProjectByID(projectId int) (foundProject models.Ad, err error) {
 	return
 }
 
-// Function that returns all projects from the database
-func GetAllProjects() ([]models.Ad, error) {
+// Function that returns all ads from the database
+func GetAllAds() ([]models.Ad, error) {
 	// Define the context for the operation
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -65,26 +51,54 @@ func GetAllProjects() ([]models.Ad, error) {
 	// Define options for the find operation
 	findOptions := options.Find()
 
-	// Perform the find operation to retrieve all project documents
+	// Perform the find operation to retrieve all ad documents
 	cursor, err := adsCollection.Find(ctx, bson.M{}, findOptions)
 	if err != nil {
 		return nil, err
 	}
 	defer cursor.Close(ctx)
 
-	// Iterate over the results and construct project objects
-	var projects []models.Ad
+	// Iterate over the results and construct ad objects
+	var ads []models.Ad
 	for cursor.Next(ctx) {
-		var project models.Ad
-		if err := cursor.Decode(&project); err != nil {
+		var ad models.Ad
+		if err := cursor.Decode(&ad); err != nil {
 			return nil, err
 		}
-		projects = append(projects, project)
+		ads = append(ads, ad)
 	}
 
 	if err := cursor.Err(); err != nil {
 		return nil, err
 	}
 
-	return projects, nil
+	return ads, nil
+}
+
+func GetAdsByPage(page int) (ads []models.Ad, err error) {
+	// Define the context
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	const pageSize = 5 // Example: Retrieve 20 ads per page
+
+	// Calculate offset (number of documents to skip)
+	offset := (page - 1) * pageSize
+
+	// Create options for the Find operation with skip and limit
+	options := options.Find().SetSkip(int64(offset)).SetLimit(int64(pageSize))
+
+	// Execute the query
+	cursor, err := adsCollection.Find(ctx, bson.D{}, options)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Decode results into the 'ads' slice
+	if err = cursor.All(ctx, &ads); err != nil {
+		return nil, err
+	}
+
+	return ads, nil
 }

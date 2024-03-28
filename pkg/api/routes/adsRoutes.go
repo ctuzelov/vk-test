@@ -8,7 +8,7 @@ import (
 )
 
 func ProjectRoutes(incomingRoutes *gin.Engine) {
-	incomingRoutes.POST("/create-project", middleware.Authenticate(), handlers.CreateProject())
-	incomingRoutes.PUT("/update-project/:id", middleware.IsAdmin(), handlers.UpdateProject())
-	incomingRoutes.GET("/get-projects", handlers.GetAllProjects())
+	incomingRoutes.POST("/create-ad", middleware.IsAuthenticated(), handlers.CreateAd())
+	incomingRoutes.GET("/ads-by-page", middleware.IsAuthorized(), handlers.GetAds())
+	incomingRoutes.GET("/all-ads", middleware.IsAuthorized(), handlers.GetAllAds())
 }

@@ -1,10 +1,10 @@
 package controllers
 
 import (
+	"errors"
 	"vk-test/pkg/database/mongodb/models"
 	"vk-test/pkg/database/mongodb/repository"
 	"vk-test/pkg/utils"
-	"errors"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,6 +15,16 @@ func SignUp(c *gin.Context) (err error) {
 	var user models.User
 
 	if err = c.BindJSON(&user); err != nil {
+		return
+	}
+
+	if !utils.IsValidEmail(user.Email) {
+		err = errors.New(utils.MsgInvalidEmail)
+		return
+	}
+
+	if !utils.IsValidPassword(user.Password) {
+		err = errors.New(utils.MsgInvalidPass)
 		return
 	}
 
@@ -33,7 +43,7 @@ func SignUp(c *gin.Context) (err error) {
 	user.Password = password
 	user.ID = primitive.NewObjectID()
 	user.User_id = user.ID.Hex()
-	token, refreshToken, err := utils.GenerateAllTokens(user.Email, user.Name, user.User_id)
+	token, refreshToken, err := utils.GenerateAllTokens(user.Email, user.User_id)
 
 	if err != nil {
 		err = errors.New("error occured generating tokens")
@@ -54,6 +64,16 @@ func Login(c *gin.Context) (token string, refreshToken string, err error) {
 		return
 	}
 
+	if !utils.IsValidEmail(user.Email) {
+		err = errors.New(utils.MsgInvalidEmail)
+		return
+	}
+
+	if !utils.IsValidPassword(user.Password) {
+		err = errors.New(utils.MsgInvalidPass)
+		return
+	}
+
 	foundUser, err := repository.GetUserByEmail(user.Email)
 
 	if err != nil {
@@ -65,7 +85,7 @@ func Login(c *gin.Context) (token string, refreshToken string, err error) {
 		err = errors.New(msg)
 		return
 	}
-	token, refreshToken, err = utils.GenerateAllTokens(foundUser.Email, foundUser.Name, foundUser.User_id)
+	token, refreshToken, err = utils.GenerateAllTokens(foundUser.Email, foundUser.User_id)
 
 	if err != nil {
 		return
@@ -95,8 +115,8 @@ func Refresh_Token(c *gin.Context) (token string, refreshToken string, err error
 		return
 	}
 	//Capture user details extracted from the refresh token provided
-	name, email, uid := claims["Name"].(string), claims["Email"].(string), claims["Uid"].(string)
-	token, refreshToken, err = utils.GenerateAllTokens(name, email, uid)
+	email, uid := claims["Email"].(string), claims["Uid"].(string)
+	token, refreshToken, err = utils.GenerateAllTokens(email, uid)
 
 	if err != nil {
 		return
@@ -105,52 +125,6 @@ func Refresh_Token(c *gin.Context) (token string, refreshToken string, err error
 
 	return
 
-}
-
-func EditPersonalData(c *gin.Context) error {
-	var userData models.User
-	// Bind the updated user data from the request body
-	if err := c.BindJSON(&userData); err != nil {
-		return err
-	}
-
-	claims, ok := c.Get("user_email")
-	if !ok {
-		return errors.New("unable to retrieve user email from JWT claims")
-	}
-	userEmail := claims.(string)
-
-	// Ensure that the user making the request is authorized to edit their own data
-	if userData.Email != userEmail {
-		return errors.New("unauthorized to edit data for this user")
-	}
-
-	// Check if the user with the provided email exists
-	existingUser, err := repository.GetUserByEmail(userData.Email)
-	if err != nil {
-		return err
-	}
-	if existingUser == (models.User{}) {
-		return errors.New("user not found")
-	}
-
-	// Update the user's personal data
-	if userData.Name != "" {
-		existingUser.Name = userData.Name
-	}
-	if userData.Number != "" {
-		existingUser.Number = userData.Number
-	}
-	if userData.DateOfBirth != "" {
-		existingUser.DateOfBirth = userData.DateOfBirth
-	}
-
-	// Save the updated user data to the database
-	if err := repository.UpdateUser(existingUser); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func GetAllUsers() ([]models.User, error) {
